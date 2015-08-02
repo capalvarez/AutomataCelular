@@ -16,12 +16,41 @@ public class QuotientAutomata implements Runnable{
 	}
 	
 	public void run(){
+		boolean[] values = new boolean[endIndex-initIndex];
+		
+		synchronized(matrix.reading()){
+   			matrix.changeReadingStatus(true);	
+   		}
+				
+	   	for(int k=initIndex;k<endIndex;k++){
+	   		int i = k%m;
+	   		int j = k - i*m;
+				   		
+			values[k-initIndex] = rc.getNewValue(matrix.getValue(i, j));	
+	   	}
+	   	
+	   	synchronized(matrix.reading()){
+   			matrix.changeReadingStatus(false);	
+   			matrix.reading().notify();
+	   	}
+	   	
 	   	for(int k=initIndex;k<endIndex;k++){
 	   		int i = k%m;
 	   		int j = k - i*m;
 				
-			rc.getNewValue(matrix.getValue(i, j));	
-		}
+	   		synchronized(matrix.reading()){
+	   			if(matrix.reading()){
+	   				try {
+						matrix.reading().wait();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+	   			}
+	   			matrix.changeValue(i,j,values[k-initIndex]);	
+	   		}
+	   	}
+	   	
+	   		   	
 	}
 }
 

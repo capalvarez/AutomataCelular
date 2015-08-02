@@ -13,16 +13,20 @@ public class RuleComputer {
 		this.n4 = rules[3];
 	}
 	
-	public void getNewValue(Cell c){
+	public boolean getNewValue(Cell c){
 		int N = c.getNeighbours();
 		
 		if(c.state()==0){
 			if(betweenLight(N)){
-				c.switchOn();
+				return true;
+			}else{
+				return false;
 			}
 		}else{
 			if(!betweenKeep(N)){
-				c.switchOff();
+				return false;
+			}else{
+				return true;
 			}
 		}
 	}

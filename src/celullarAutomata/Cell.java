@@ -9,12 +9,8 @@ public class Cell {
 		light = init? 1:0;
 	}
 	
-	public void switchOn(){
-		light = 1;
-	}
-	
-	public void switchOff(){
-		light = 0;
+	public void changeValue(boolean value){
+		light = value? 1:0;
 	}
 	
 	public int state(){
