@@ -3,6 +3,7 @@ package celullarAutomata;
 public class Matrix2D {
 	private Cell[][] matrix;
 	private boolean reading;
+	private int finished;
 	private int m;
 	public int[] rules;
 	
@@ -32,6 +33,18 @@ public class Matrix2D {
 	
 	public Boolean reading(){
 		return reading;
+	}
+	
+	public Integer finished(){
+		return finished;
+	}
+	
+	public void addWorking(){
+		finished++;
+	}
+	
+	public void substractWorking(){
+		finished--;
 	}
 	
 	public void changeReadingStatus(boolean status){
