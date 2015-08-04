@@ -1,5 +1,5 @@
 package celullarAutomata;
 
-public class Matrix3D {
+public interface Matrix {
 
 }
