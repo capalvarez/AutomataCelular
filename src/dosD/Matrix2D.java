@@ -1,9 +1,8 @@
 package dosD;
 
-import celullarAutomata.Matrix;
 import celullarAutomata.RuleComputer;
 
-public class Matrix2D implements Matrix{
+public class Matrix2D{
 	private Cell2D[][] matrix;
 	private boolean reading;
 	private int finished;

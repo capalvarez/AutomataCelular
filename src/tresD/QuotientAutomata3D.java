@@ -3,7 +3,7 @@ package tresD;
 import celullarAutomata.RuleComputer;
 import dosD.Matrix2D;
 
-public class QuotientAutomata3D {
+public class QuotientAutomata3D implements Runnable{
 	private int initIndex;
 	private int endIndex;
 	private RuleComputer rc;
@@ -27,9 +27,9 @@ public class QuotientAutomata3D {
 	   		}
 					
 		   	for(int k=initIndex;k<endIndex;k++){
-		   		int i = k%m;
-		   		int j = k - i*m;
-				int l = 0;
+		   		int i = (int)(k%m/m);
+		   		int j = k%m - i*m;
+				int l = (int)(k/m);
 		   		
 				values[k-initIndex] = rc.getNewValue(matrix.getValue(i, j, l));	
 		   	}
@@ -40,9 +40,10 @@ public class QuotientAutomata3D {
 		   	}
 		   	
 		   	for(int k=initIndex;k<endIndex;k++){
-		   		int i = k%m;
-		   		int j = k - i*m;
-					
+		   		int i = (int)(k%m/m);
+		   		int j = k%m - i*m;
+				int l = (int)(k/m);
+		   		
 		   		synchronized(matrix.reading()){
 		   			if(matrix.reading()){
 		   				try {
@@ -51,7 +52,7 @@ public class QuotientAutomata3D {
 							exception.printStackTrace();
 						}
 		   			}
-		   			matrix.changeValue(i,j,values[k-initIndex]);	
+		   			matrix.changeValue(i,j,l, values[k-initIndex]);	
 		   		}
 		   	}
 		   	

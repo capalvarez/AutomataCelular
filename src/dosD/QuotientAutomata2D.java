@@ -26,7 +26,7 @@ public class QuotientAutomata2D implements Runnable{
 	   		}
 					
 		   	for(int k=initIndex;k<endIndex;k++){
-		   		int i = k%m;
+		   		int i = (int)(k/m);
 		   		int j = k - i*m;
 					   		
 				values[k-initIndex] = rc.getNewValue(matrix.getValue(i, j));	
@@ -38,7 +38,7 @@ public class QuotientAutomata2D implements Runnable{
 		   	}
 		   	
 		   	for(int k=initIndex;k<endIndex;k++){
-		   		int i = k%m;
+		   		int i = (int)(k/m);
 		   		int j = k - i*m;
 					
 		   		synchronized(matrix.reading()){

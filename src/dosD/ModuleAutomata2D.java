@@ -27,7 +27,7 @@ public class ModuleAutomata2D implements Runnable{
 			
 			for(int k=0;k<kMax;k++){				
 				int l = myIndex + k*matrix.getN();
-				int i = l%m;
+				int i = (int)(k/m);
 				int j = l - i*m;
 						   		
 				values[k] = rc.getNewValue(matrix.getValue(i, j));	
@@ -40,7 +40,7 @@ public class ModuleAutomata2D implements Runnable{
 			
 			for(int k=0;k<kMax;k++){
 				int l = myIndex + k*matrix.getN();
-				int i = l%m;
+				int i = (int)(k/m);
 				int j = l - i*m;
 					
 		   		synchronized(matrix.reading()){
