@@ -38,18 +38,14 @@ public class QuotientAutomata2D implements Runnable{
 	   			if(matrix.getN()>1 && matrix.finished()<1){   				
 	   				matrix.changeReadingStatus(false);	
 	   				matrix.nextStep();
-	   				matrix.readingLock().notify();
-	   				System.out.println(Thread.currentThread().getId() + " termino su trabajo");
+	   				
+	   				matrix.readingLock().notifyAll();
 	   			}	
 	   		}
-		   	System.out.println("paso por aca?");
 		   	
 		   	synchronized(matrix.readingLock()){
-	   			System.out.println("alguien trata de escribir " + Thread.currentThread().getId());
-	   			System.out.println("reading " + matrix.reading());
 	   			while(matrix.reading()){
 	   				try {
-	   					System.out.println("Trato de escribir " + Thread.currentThread().getId());
 						matrix.readingLock().wait();
 					} catch (InterruptedException exception) {
 						exception.printStackTrace();
@@ -61,13 +57,12 @@ public class QuotientAutomata2D implements Runnable{
 		   		int i = (int)(k/m);
 		   		int j = k - i*m;   		
 		   			
-		   		System.out.println("escribo? " + Thread.currentThread().getId());
 		   		matrix.changeValue(i,j,values[k-initIndex]);	
 		   		
 		   	}
 		   	
 		   	synchronized(matrix.finishLock()){
-				if(matrix.finished()>0){
+				if(matrix.finished()>1){
 					matrix.substractWorking();
 					try{
 						matrix.finishLock().wait();
@@ -81,10 +76,8 @@ public class QuotientAutomata2D implements Runnable{
 						matrix.finishLock().notifyAll();
 		   			}			
 				}
-			}
-		   	
-		}
-	   		   	
+			}  	
+		}	   	
 	}
 }
 

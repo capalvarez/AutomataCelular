@@ -107,7 +107,7 @@ public class Matrix2D{
 			threads[i].join();
 		}
 		
-		printMatrix();
+		//printMatrix();
 	}
 	
 	public void computeMatrixModule(){

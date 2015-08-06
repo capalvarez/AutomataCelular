@@ -21,51 +21,61 @@ public class ModuleAutomata2D implements Runnable{
 		for(int e=0;e<matrix.getPhases();e++){		
 			boolean[] values = new boolean[kMax];
 			
-			synchronized(matrix.reading()){
+			synchronized(matrix.readingLock()){
 	   			matrix.changeReadingStatus(true);	
 	   		}
 			
 			for(int k=0;k<kMax;k++){				
 				int l = myIndex + k*matrix.getN();
-				int i = (int)(k/m);
+				int i = (int)(l/m);
 				int j = l - i*m;
 						   		
 				values[k] = rc.getNewValue(matrix.getValue(i, j));	
 			}
 			   	
-			synchronized(matrix.reading()){
+			synchronized(matrix.readingLock()){
 				matrix.changeReadingStatus(false);	
-		   		matrix.reading().notifyAll();
+				
+				if(matrix.getN()>1 && matrix.finished()<1){   				
+	   				matrix.changeReadingStatus(false);	
+	   				matrix.nextStep();
+	   				
+	   				matrix.readingLock().notifyAll();
+	   			}	
 			}
+			
+			synchronized(matrix.readingLock()){
+	   			while(matrix.reading()){
+	   				try {
+						matrix.readingLock().wait();
+					} catch (InterruptedException exception) {
+						exception.printStackTrace();
+					}
+	   			}
+		   	}
 			
 			for(int k=0;k<kMax;k++){
 				int l = myIndex + k*matrix.getN();
 				int i = (int)(k/m);
 				int j = l - i*m;
 					
-		   		synchronized(matrix.reading()){
-		   			if(matrix.reading()){
-		   				try {
-							matrix.reading().wait();
-						} catch (InterruptedException exception) {
-							exception.printStackTrace();
-						}
-		   			}
-		   			matrix.changeValue(i,j,values[k]);	
-		   		}
+		   		matrix.changeValue(i,j,values[k]);
 		   	}
 			
-			synchronized(matrix.finished()){
+			synchronized(matrix.finishLock()){
 				if(matrix.finished()>1){
 					matrix.substractWorking();
 					try{
-						matrix.finished().wait();
+						matrix.finishLock().wait();
 					}catch (InterruptedException e1) {
 						e1.printStackTrace();
 					}
 				}else{
 					matrix.substractWorking();
-					matrix.finished().notifyAll();
+					
+					if(matrix.getN()>1){
+						matrix.finishLock().notifyAll();
+		   			}	
 				}
 			}
 		}			
