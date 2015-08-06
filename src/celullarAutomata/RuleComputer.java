@@ -15,20 +15,20 @@ public class RuleComputer {
 	
 	public boolean getNewValue(Cell c){
 		int N = c.getNeighbours();
+		boolean retValue = false;
 		
 		if(c.state()==0){
 			if(betweenLight(N)){
-				return true;
-			}else{
-				return false;
+				retValue = true;
 			}
 		}else{
-			if(!betweenKeep(N)){
-				return false;
-			}else{
-				return true;
+			if(betweenKeep(N)){
+				retValue = true;
 			}
 		}
+
+		return retValue;
+		
 	}
 	
 	private boolean betweenLight(int N){

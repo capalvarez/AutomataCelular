@@ -5,24 +5,26 @@ import celullarAutomata.RuleComputer;
 public class Matrix2D{
 	private Cell2D[][] matrix;
 	private boolean reading;
+	private final Object readingObject = new Object();
+	private final Object finishObject = new Object();
 	private int finished;
 	private int m;
 	private int phases;
-	private int threads;
+	private int threadNum;
 	public int[] rules;
 	
 	public Matrix2D(int m, int p, int N, int[] rules, boolean[] initValues){
 		matrix = new Cell2D[m][m];	
 		this.m = m;
 		this.phases = p;
-		this.threads = N;
+		this.threadNum = N;
 		this.rules = rules;
-		this.finished = threads;
+		this.finished = threadNum;
 		
 		for(int i=0;i<m;i++){
 			for(int j=0;j<m;j++){
 				int index = i*m + j;
-				matrix[i][j] = new Cell2D(initValues[index],index);
+				matrix[i][j] = new Cell2D(initValues[index],index,this);
 			}
 		}
 	}
@@ -44,15 +46,23 @@ public class Matrix2D{
 	}
 	
 	public int getN(){
-		return threads;
+		return threadNum;
 	}
 	
 	public RuleComputer getRules(){
 		return new RuleComputer(rules);
 	}
 	
-	public Boolean reading(){
+	public Object readingLock(){
+		return readingObject;
+	}
+	
+	public boolean reading(){
 		return reading;
+	}
+	
+	public Object finishLock(){
+		return finishObject;
 	}
 	
 	public Integer finished(){
@@ -60,7 +70,7 @@ public class Matrix2D{
 	}
 	
 	public void nextStep(){
-		finished = threads;	
+		finished = threadNum;	
 	}
 	
 	public void addWorking(){
@@ -75,12 +85,11 @@ public class Matrix2D{
 		reading = status;
 	}
 	
-	
 	public void changeValue(int i, int j, boolean value){
 		matrix[i][j].changeValue(value);
 	}
 	
-	public void computeMatrixQuotient(int threadNum){
+	public void computeMatrixQuotient() throws InterruptedException{
 		Thread[] threads = new Thread[threadNum];
 		int d = (int)Math.pow(m, 2)/threadNum;
 				
@@ -90,16 +99,37 @@ public class Matrix2D{
 			
 			threads[i] = new Thread(new QuotientAutomata2D(this,start,end)); 
 			threads[i].start();
-		}		
+		}
+		
+		System.out.println("Done!");
+		
+		for(int i=0;i<threadNum;i++){
+			threads[i].join();
+		}
+		
+		printMatrix();
 	}
 	
-	public void computeMatrixModule(int threadNum){
+	public void computeMatrixModule(){
 		Thread[] threads = new Thread[threadNum];
 					
 		for(int i=0;i<threadNum;i++){			
 			threads[i] = new Thread(new ModuleAutomata2D(this,i)); 
 			threads[i].start();
-		}	
+		}
+		
+		System.out.print("Done!");
+		printMatrix();
+		
+	}
+	
+	public void printMatrix(){
+		for (int i = 0; i<m; i++) {
+		    for (int j = 0;j<m; j++) {
+		        System.out.print(matrix[i][j].state() + " ");
+		    }
+		    System.out.print("\n");
+		}
 	}
 	
 	

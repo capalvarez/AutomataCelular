@@ -21,10 +21,10 @@ public class QuotientAutomata2D implements Runnable{
 		for(int e=0;e<matrix.getPhases();e++){
 			boolean[] values = new boolean[endIndex-initIndex];
 			
-			synchronized(matrix.reading()){
-	   			matrix.changeReadingStatus(true);	
+			synchronized(matrix.readingLock()){
+				matrix.changeReadingStatus(true);	
 	   		}
-					
+				
 		   	for(int k=initIndex;k<endIndex;k++){
 		   		int i = (int)(k/m);
 		   		int j = k - i*m;
@@ -32,38 +32,54 @@ public class QuotientAutomata2D implements Runnable{
 				values[k-initIndex] = rc.getNewValue(matrix.getValue(i, j));	
 		   	}
 		   	
-		   	synchronized(matrix.reading()){
-	   			matrix.changeReadingStatus(false);	
-	   			matrix.reading().notifyAll();
-		   	}
+		   	synchronized(matrix.readingLock()){
+	   			matrix.substractWorking();
+	   			   			
+	   			if(matrix.getN()>1 && matrix.finished()<1){   				
+	   				matrix.changeReadingStatus(false);	
+	   				matrix.nextStep();
+	   				matrix.readingLock().notify();
+	   				System.out.println(Thread.currentThread().getId() + " termino su trabajo");
+	   			}	
+	   		}
+		   	System.out.println("paso por aca?");
+		   	
+		   	synchronized(matrix.readingLock()){
+	   			System.out.println("alguien trata de escribir " + Thread.currentThread().getId());
+	   			System.out.println("reading " + matrix.reading());
+	   			while(matrix.reading()){
+	   				try {
+	   					System.out.println("Trato de escribir " + Thread.currentThread().getId());
+						matrix.readingLock().wait();
+					} catch (InterruptedException exception) {
+						exception.printStackTrace();
+					}
+	   			}
+		   	}	
 		   	
 		   	for(int k=initIndex;k<endIndex;k++){
 		   		int i = (int)(k/m);
-		   		int j = k - i*m;
-					
-		   		synchronized(matrix.reading()){
-		   			if(matrix.reading()){
-		   				try {
-							matrix.reading().wait();
-						} catch (InterruptedException exception) {
-							exception.printStackTrace();
-						}
-		   			}
-		   			matrix.changeValue(i,j,values[k-initIndex]);	
-		   		}
+		   		int j = k - i*m;   		
+		   			
+		   		System.out.println("escribo? " + Thread.currentThread().getId());
+		   		matrix.changeValue(i,j,values[k-initIndex]);	
+		   		
 		   	}
 		   	
-		   	synchronized(matrix.finished()){
-				if(matrix.finished()>1){
+		   	synchronized(matrix.finishLock()){
+				if(matrix.finished()>0){
 					matrix.substractWorking();
 					try{
-						matrix.finished().wait();
+						matrix.finishLock().wait();
 					}catch (InterruptedException e1) {
 						e1.printStackTrace();
 					}
 				}else{
 					matrix.nextStep();
-					matrix.finished().notifyAll();
+					
+					if(matrix.getN()>1){
+						matrix.finishLock().notifyAll();
+		   			}			
 				}
 			}
 		   	
