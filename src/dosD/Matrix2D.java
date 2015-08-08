@@ -110,7 +110,7 @@ public class Matrix2D{
 		//printMatrix();
 	}
 	
-	public void computeMatrixModule(){
+	public void computeMatrixModule() throws InterruptedException{
 		Thread[] threads = new Thread[threadNum];
 					
 		for(int i=0;i<threadNum;i++){			
@@ -118,8 +118,13 @@ public class Matrix2D{
 			threads[i].start();
 		}
 		
-		System.out.print("Done!");
-		printMatrix();
+		System.out.println("Done!");
+		
+		for(int i=0;i<threadNum;i++){
+			threads[i].join();
+		}
+		
+		//printMatrix();
 		
 	}
 	

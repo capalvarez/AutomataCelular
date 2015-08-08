@@ -56,7 +56,7 @@ public class ModuleAutomata2D implements Runnable{
 			
 			for(int k=0;k<kMax;k++){
 				int l = myIndex + k*matrix.getN();
-				int i = (int)(k/m);
+				int i = (int)(l/m);
 				int j = l - i*m;
 					
 		   		matrix.changeValue(i,j,values[k]);
