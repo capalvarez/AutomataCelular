@@ -21,51 +21,65 @@ public class ModuleAutomata3D implements Runnable{
 		for(int e=0;e<matrix.getPhases();e++){		
 			boolean[] values = new boolean[kMax];
 			
-			synchronized(matrix.reading()){
+			synchronized(matrix.readingLock()){
 	   			matrix.changeReadingStatus(true);	
 	   		}
 			
 			for(int k=0;k<kMax;k++){				
 				int l = myIndex + k*matrix.getN();
-				int i = (int)(k/m);
-				int j = l - i*m;
+				int z = (int)(l/Math.pow(m,2));
+		   		int x = (int) ((l - z*Math.pow(m,2))/m);
+				int y = (int)(l - x*m - z*Math.pow(m, 2));
 						   		
-				values[k] = rc.getNewValue(matrix.getValue(i, j, l));	
+				values[k] = rc.getNewValue(matrix.getValue(x, y, z));	
 			}
 			   	
-			synchronized(matrix.reading()){
-				matrix.changeReadingStatus(false);	
-		   		matrix.reading().notifyAll();
+			synchronized(matrix.readingLock()){
+				matrix.substractWorking();
+				
+				if(matrix.finished()<1){   				
+	   				matrix.changeReadingStatus(false);	
+	   				matrix.nextStep();
+	   				
+	   				if(matrix.getN()>1){ 
+	   					matrix.readingLock().notifyAll();
+	   				}
+	   			}
 			}
+			
+			synchronized(matrix.readingLock()){
+	   			if(matrix.reading()){
+	   				try {
+						matrix.readingLock().wait();
+					} catch (InterruptedException exception) {
+						exception.printStackTrace();
+					}
+	   			}
+			}	
 			
 			for(int k=0;k<kMax;k++){
 				int l = myIndex + k*matrix.getN();
-				int i = (int)(k/m);
-				int j = l - i*m;
+				int z = (int)(l/Math.pow(m,2));
+		   		int x = (int) ((l - z*Math.pow(m,2))/m);
+		   		int y = (int)(l - x*m - z*Math.pow(m, 2));
 					
-		   		synchronized(matrix.reading()){
-		   			if(matrix.reading()){
-		   				try {
-							matrix.reading().wait();
-						} catch (InterruptedException exception) {
-							exception.printStackTrace();
-						}
-		   			}
-		   			matrix.changeValue(i,j,l,values[k]);	
-		   		}
+		   		matrix.changeValue(x,y,z,values[k]);	
 		   	}
 			
-			synchronized(matrix.finished()){
+			synchronized(matrix.finishLock()){
 				if(matrix.finished()>1){
 					matrix.substractWorking();
 					try{
-						matrix.finished().wait();
+						matrix.finishLock().wait();
 					}catch (InterruptedException e1) {
 						e1.printStackTrace();
 					}
 				}else{
-					matrix.substractWorking();
-					matrix.finished().notifyAll();
+					matrix.nextStep();
+					
+					if(matrix.getN()>1){
+						matrix.finishLock().notifyAll();
+					}	
 				}
 			}
 		}			

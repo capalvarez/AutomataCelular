@@ -1,7 +1,6 @@
 package tresD;
 
 import celullarAutomata.RuleComputer;
-import dosD.Matrix2D;
 
 public class QuotientAutomata3D implements Runnable{
 	private int initIndex;
@@ -22,51 +21,63 @@ public class QuotientAutomata3D implements Runnable{
 		for(int e=0;e<matrix.getPhases();e++){
 			boolean[] values = new boolean[endIndex-initIndex];
 			
-			synchronized(matrix.reading()){
+			synchronized(matrix.readingLock()){
 	   			matrix.changeReadingStatus(true);	
 	   		}
 					
 		   	for(int k=initIndex;k<endIndex;k++){
-		   		int i = (int)(k%m/m);
-		   		int j = k%m - i*m;
-				int l = (int)(k/m);
-		   		
-				values[k-initIndex] = rc.getNewValue(matrix.getValue(i, j, l));	
+		   		int z = (int)(k/Math.pow(m,2));
+		   		int x = (int)((k - z*Math.pow(m,2))/m);
+				int y = (int)(k - x*m - z*Math.pow(m, 2));
+
+				values[k-initIndex] = rc.getNewValue(matrix.getValue(x, y, z));	
 		   	}
 		   	
-		   	synchronized(matrix.reading()){
-	   			matrix.changeReadingStatus(false);	
-	   			matrix.reading().notifyAll();
+		   	synchronized(matrix.readingLock()){
+		   		matrix.substractWorking();
+	   			
+		   		if(matrix.finished()<1){   				
+	   				matrix.changeReadingStatus(false);	
+	   				matrix.nextStep();
+	   				
+	   				if(matrix.getN()>1){ 
+	   					matrix.readingLock().notifyAll();
+	   				}	
+	   			}
 		   	}
+		   	
+		   	synchronized(matrix.readingLock()){
+	   			if(matrix.reading()){
+	   				try {
+						matrix.readingLock().wait();
+					} catch (InterruptedException exception) {
+						exception.printStackTrace();
+					}
+	   			}
+		   	}	
 		   	
 		   	for(int k=initIndex;k<endIndex;k++){
-		   		int i = (int)(k%m/m);
-		   		int j = k%m - i*m;
-				int l = (int)(k/m);
+		   		int z = (int)(k/Math.pow(m,2));
+		   		int x = (int) ((k - z*Math.pow(m,2))/m);
+				int y = (int)(k - x*m - z*Math.pow(m, 2));
 		   		
-		   		synchronized(matrix.reading()){
-		   			if(matrix.reading()){
-		   				try {
-							matrix.reading().wait();
-						} catch (InterruptedException exception) {
-							exception.printStackTrace();
-						}
-		   			}
-		   			matrix.changeValue(i,j,l, values[k-initIndex]);	
-		   		}
+		   		matrix.changeValue(x,y,z,values[k-initIndex]);			
 		   	}
 		   	
-		   	synchronized(matrix.finished()){
+		   	synchronized(matrix.finishLock()){
 				if(matrix.finished()>1){
 					matrix.substractWorking();
 					try{
-						matrix.finished().wait();
+						matrix.finishLock().wait();
 					}catch (InterruptedException e1) {
 						e1.printStackTrace();
 					}
 				}else{
 					matrix.nextStep();
-					matrix.finished().notifyAll();
+					
+					if(matrix.getN()>1){
+						matrix.finishLock().notifyAll();
+					}
 				}
 			}
 		   	

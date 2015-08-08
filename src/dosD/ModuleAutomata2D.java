@@ -34,13 +34,15 @@ public class ModuleAutomata2D implements Runnable{
 			}
 			   	
 			synchronized(matrix.readingLock()){
-				matrix.changeReadingStatus(false);	
+				matrix.substractWorking();
 				
-				if(matrix.getN()>1 && matrix.finished()<1){   				
+				if(matrix.finished()<1){   				
 	   				matrix.changeReadingStatus(false);	
 	   				matrix.nextStep();
 	   				
-	   				matrix.readingLock().notifyAll();
+	   				if(matrix.getN()>1){ 
+	   					matrix.readingLock().notifyAll();
+	   				}
 	   			}	
 			}
 			
@@ -58,7 +60,8 @@ public class ModuleAutomata2D implements Runnable{
 				int l = myIndex + k*matrix.getN();
 				int i = (int)(l/m);
 				int j = l - i*m;
-					
+				
+				
 		   		matrix.changeValue(i,j,values[k]);
 		   	}
 			
@@ -71,7 +74,7 @@ public class ModuleAutomata2D implements Runnable{
 						e1.printStackTrace();
 					}
 				}else{
-					matrix.substractWorking();
+					matrix.nextStep();
 					
 					if(matrix.getN()>1){
 						matrix.finishLock().notifyAll();

@@ -35,11 +35,13 @@ public class QuotientAutomata2D implements Runnable{
 		   	synchronized(matrix.readingLock()){
 	   			matrix.substractWorking();
 	   			   			
-	   			if(matrix.getN()>1 && matrix.finished()<1){   				
+	   			if(matrix.finished()<1){   				
 	   				matrix.changeReadingStatus(false);	
 	   				matrix.nextStep();
 	   				
-	   				matrix.readingLock().notifyAll();
+	   				if(matrix.getN()>1){ 
+	   					matrix.readingLock().notifyAll();
+	   				}
 	   			}	
 	   		}
 		   	

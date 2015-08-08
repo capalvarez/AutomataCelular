@@ -7,9 +7,10 @@ public class Cell3D implements Cell{
 	private Matrix3D matrix;
 	private int light;
 	
-	public Cell3D(boolean init, int index){
+	public Cell3D(boolean init, int index, Matrix3D m){
 		light = init? 1:0;
 		myIndex = index;
+		matrix = m;
 	}
 	
 	public void changeValue(boolean value){
@@ -29,7 +30,12 @@ public class Cell3D implements Cell{
 					if(i==0 && j==0 && k==0){
 						continue;
 					}
-					N = N + matrix.getValue(myIndex+i,myIndex+j,myIndex+k).state();
+					
+					int i1 = (matrix.getM() + myIndex+i)%matrix.getM();
+					int i2 = (matrix.getM() + myIndex+j)%matrix.getM();
+					int i3 = (matrix.getM() + myIndex+k)%matrix.getM();
+					
+					N = N + matrix.getValue(i1,i2,i3).state();
 				}	
 			}
 		}
